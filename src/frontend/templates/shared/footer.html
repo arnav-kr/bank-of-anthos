@@ -1,17 +1,16 @@
-      <!-- Page Footer -->
-      <footer class="footer">
-        <div class="container">
-            <div class="row mb-2" class="footer-google-inc">© 2020-2024 Google LLC</div>
-            <div class="row mb-3">
-              <small>
-                <b>Cluster: </b>{{ cluster_name }}, <b>Pod: </b>{{ pod_name }}<b>, Zone: </b>{{ pod_zone }}
-              </small>
-            </div>
-            <div class="row mb-3">
-              <small>
-                This website is hosted for demo purposes only. It is not an
-                actual bank. This is not an official Google project.
-              </small>
-            </div>
-        </div>
-      </footer>
+<!-- Modern Tailwind Footer -->
+<footer class="mt-12 border-t border-slate-200 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-slate-600">
+      <div>
+        <p>&copy; 2024 {{ bank_name }}. All rights reserved.</p>
+        <p class="text-xs text-slate-500 mt-1">This is a demo application for testing purposes.</p>
+      </div>
+      <div class="flex gap-6 text-slate-500 text-xs">
+        <a href="#" class="hover:text-slate-900 transition-colors">Privacy Policy</a>
+        <a href="#" class="hover:text-slate-900 transition-colors">Terms of Service</a>
+        <a href="#" class="hover:text-slate-900 transition-colors">Contact Us</a>
+      </div>
+    </div>
+  </div>
+</footer>

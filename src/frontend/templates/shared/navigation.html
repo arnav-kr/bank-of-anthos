@@ -1,37 +1,50 @@
-    <!-- Bank of Anthos Navigation Bar -->
-    <header>
-      <nav class="navbar navbar-expand-lg navbar-top">
-        <div class="container">
-        {% if cymbal_logo == "true" %}
-          <div class="logo-container">
-            <a href="/"><img id="cymbal-logo" src="static/img/cymbal.svg"></a>
-          </div>
-        {% else %}
-          <a class="navbar-brand">
-            {{ bank_name }}
-          </a>
-        {% endif %}
-        {% if name %}
-          <button type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler navbar-toggler-right">
-            <span class="material-icons">menu</span>
-          </button>
-          <div class="justify-content-end collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="accountDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <span>
-                      <span id="account-user-name">{{ name }}</span>
-                  </span>
-                </a>
-                <div class="dropdown-menu" aria-labelledby="accountDropdown">
-                  <form id="logout-form" method="POST" action="/logout">
-                    <a class="dropdown-item" onclick="document.querySelector('#logout-form').submit();">Sign out<i class="fa-icon-spacer fas fa-sign-out-alt"></i></a>
-                  </form>
-                </div>
-              </li>
-            </ul>
-          </div>
-        {% endif %}
+<!-- Modern Tailwind Navigation -->
+<nav class="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- Logo & Brand -->
+      <div class="flex items-center space-x-3">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3m0-5C6.477 1 2 5.477 2 12s4.477 11 10 11 10-4.477 10-10S17.523 1 12 1m0 20c-4.97 0-9-4.03-9-9s4.03-9 9-9 9 4.03 9 9-4.03 9-9 9" />
+          </svg>
         </div>
-      </nav>
-    </header>
+        <h1 class="text-lg font-display font-bold text-slate-900 hidden sm:block">{{ bank_name }}</h1>
+      </div>
+
+      <!-- Right Actions -->
+      <div class="flex items-center space-x-4">
+        <button class="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
+          <span class="material-icons">notifications</span>
+        </button>
+
+        <div class="w-px h-6 bg-slate-200"></div>
+
+        <div class="relative group">
+          <button class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+            <span
+              class="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-sm font-medium text-blue-700">
+              {{ account_holder[0]|upper }}
+            </span>
+            <span class="material-icons text-slate-600 text-base">expand_more</span>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div
+            class="absolute right-0 mt-0 w-48 bg-white rounded-lg border border-slate-200 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out">
+            <div class="px-4 py-3 border-b border-slate-200">
+              <p class="font-medium text-slate-900 text-sm">{{ account_holder }}</p>
+              <p class="text-xs text-slate-500">Account</p>
+            </div>
+            <a href="/logout"
+              class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+              <span class="material-icons text-base">logout</span>
+              Sign out
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

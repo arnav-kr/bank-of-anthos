@@ -1,0 +1,93 @@
+<html lang="en">
+  <head>
+{% include 'shared/html_head.html' %}
+  </head>
+  <body>
+{% include 'shared/platform_banner.html' %}
+{% include 'shared/navigation.html' %}
+    <!-- Main Content -->
+    <main class="container">
+      <!-- Alert on load (top) -->
+      {% if message != None and message != 'Login Failed' %}
+      <div class="row mb-lg">
+        <div class="col-lg-6 offset-lg-3">
+          <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <span class="material-icons">info</span>{{ message }}
+            <button type="button" class="close btn-primary" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Sign-in card -->
+      <div class="row mt-xl mb-2xl" style="align-items: center; min-height: 60vh;">
+        <div class="col-lg-5 offset-lg-3-5">
+          <div class="card">
+            <div class="card-body">
+              <div class="text-center mb-lg">
+                <p class="caption mb-sm">Welcome</p>
+                <h1 class="header-title" style="font-size: 2rem;">Sign In</h1>
+              </div>
+
+              <!-- Login error alert -->
+              <div id="alertBanner" class="alert alert-danger mb-lg hidden" role="alert">
+                <span class="material-icons">error</span>Login failed.
+              </div>
+
+              {% if response_type == "code" %}
+              <form id="login-form" class="needs-validation form-tight" novalidate="" method="POST" action="/login?response_type={{ response_type }}&state={{ state }}&redirect_uri={{ redirect_uri }}&app_name={{ app_name }}">
+              {% else %}
+              <form id="login-form" class="needs-validation form-tight" novalidate="" method="POST" action="/login">
+              {% endif %}
+
+                <!-- Username field -->
+                <div class="form-group">
+                  <label for="username">Username</label>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><span class="material-icons">account_circle</span></span>
+                    </div>
+                    <input class="form-control" type="text" id="login-username" name="username" autocomplete="off" pattern="([a-zA-Z0-9_]){2,15}" value="{{ default_user }}" required>
+                    <div class="invalid-feedback">
+                      Please enter your username.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Password field -->
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><span class="material-icons">lock</span></span>
+                    </div>
+                    <input class="form-control" type="password" id="login-password" name="password" value="{{ default_password }}" required>
+                    <div class="invalid-feedback">
+                      Please enter your password.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Sign in button -->
+                <button class="btn btn-primary btn-block mt-lg mb-lg" type="submit">Sign in</button>
+
+                <!-- Account creation link -->
+                <div class="text-center">
+                  <span class="caption">Not registered?</span>
+                  <a href="/signup" class="ml-2" id="create-account-btn">Create an Account</a>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+{% include 'shared/footer.html' %}
+{% include 'shared/scripts.html' %}
+    <!-- Page specific-->
+    <script src="static/scripts/login.js"></script>
+  </body>
+</html>

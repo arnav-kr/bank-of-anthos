@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Failure Injector - Chaos Testing Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+                        display: ["Space Grotesk", "system-ui", "sans-serif"],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50">
+    <!-- Header -->
+    <div class="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100">
+                        <span class="material-icons text-amber-700">engineering</span>
+                    </div>
+                    <h1 class="text-lg font-display font-bold text-slate-900">Failure Injector</h1>
+                </div>
+                <div class="text-xs text-slate-500">Chaos Testing Dashboard</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Control Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 mb-8 p-6">
+            <h2 class="text-sm font-display font-bold text-slate-900 mb-4">Controls</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Namespace Input -->
+                <div>
+                    <label for="namespace" class="block text-xs text-slate-600 font-medium mb-2">Kubernetes Namespace</label>
+                    <input 
+                        type="text" 
+                        id="namespace" 
+                        value="default"
+                        class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all"
+                        placeholder="default"
+                    >
+                </div>
+
+                <!-- Refresh Button -->
+                <div class="flex items-end">
+                    <button 
+                        onclick="refreshCluster()"
+                        class="w-full px-4 py-2 rounded-lg bg-slate-100 text-slate-900 font-medium hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <span class="material-icons text-base">refresh</span>
+                        Refresh Inventory
+                    </button>
+                </div>
+
+                <!-- Heal Button -->
+                <div class="flex items-end">
+                    <button 
+                        onclick="healCluster()"
+                        class="w-full px-4 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <span class="material-icons text-base">healing</span>
+                        Heal Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Failure Injection Cards -->
+        <div class="space-y-4 mb-8">
+            <h2 class="text-sm font-display font-bold text-slate-900">Failure Scenarios</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Pod Crash Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="px-6 py-4 border-b border-slate-200 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                            <span class="material-icons text-red-600 text-base">error</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-900">Pod Crash</h3>
+                            <p class="text-xs text-slate-500">Crash a pod to test resilience</p>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 space-y-3">
+                        <div>
+                            <label for="pod-name" class="block text-xs text-slate-600 font-medium mb-1">Pod Name</label>
+                            <input 
+                                type="text" 
+                                id="pod-name"
+                                placeholder="e.g., frontend-xxx"
+                                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                            >
+                        </div>
+                        <button 
+                            onclick="crashPod(document.getElementById('pod-name').value)"
+                            class="w-full px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <span class="material-icons text-base">power_off</span>
+                            Crash Pod
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Resource Pressure Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="px-6 py-4 border-b border-slate-200 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center">
+                            <span class="material-icons text-yellow-600 text-base">speed</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-900">Resource Pressure</h3>
+                            <p class="text-xs text-slate-500">Constrain CPU/Memory resources</p>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="resource-pod" class="block text-xs text-slate-600 font-medium mb-1">Pod Name</label>
+                                <input 
+                                    type="text" 
+                                    id="resource-pod"
+                                    placeholder="Pod name"
+                                    class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+                                >
+                            </div>
+                            <div>
+                                <label for="resource-type" class="block text-xs text-slate-600 font-medium mb-1">Type</label>
+                                <select id="resource-type" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                                    <option value="cpu">CPU</option>
+                                    <option value="memory">Memory</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button 
+                            onclick="applyResourcePressure(document.getElementById('resource-pod').value, document.getElementById('resource-type').value)"
+                            class="w-full px-4 py-2 rounded-lg bg-yellow-600 text-white font-medium hover:bg-yellow-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <span class="material-icons text-base">trending_down</span>
+                            Apply Pressure
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Network Partition Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="px-6 py-4 border-b border-slate-200 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                            <span class="material-icons text-orange-600 text-base">cloud_off</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-900">Network Partition</h3>
+                            <p class="text-xs text-slate-500">Simulate network failure</p>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 space-y-3">
+                        <div>
+                            <label for="network-pod" class="block text-xs text-slate-600 font-medium mb-1">Pod Name</label>
+                            <input 
+                                type="text" 
+                                id="network-pod"
+                                placeholder="e.g., ledger-writer-xxx"
+                                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                            >
+                        </div>
+                        <button 
+                            onclick="injectNetworkPartition(document.getElementById('network-pod').value)"
+                            class="w-full px-4 py-2 rounded-lg bg-orange-600 text-white font-medium hover:bg-orange-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <span class="material-icons text-base">cloud_queue</span>
+                            Partition Network
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Latency Injection Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="px-6 py-4 border-b border-slate-200 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                            <span class="material-icons text-purple-600 text-base">schedule</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-900">Inject Latency</h3>
+                            <p class="text-xs text-slate-500">Add network delay to requests</p>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="latency-pod" class="block text-xs text-slate-600 font-medium mb-1">Pod Name</label>
+                                <input 
+                                    type="text" 
+                                    id="latency-pod"
+                                    placeholder="Pod name"
+                                    class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                                >
+                            </div>
+                            <div>
+                                <label for="latency-ms" class="block text-xs text-slate-600 font-medium mb-1">Latency (ms)</label>
+                                <input 
+                                    type="number" 
+                                    id="latency-ms"
+                                    value="500"
+                                    min="0"
+                                    class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                                >
+                            </div>
+                        </div>
+                        <button 
+                            onclick="injectLatency(document.getElementById('latency-pod').value, document.getElementById('latency-ms').value)"
+                            class="w-full px-4 py-2 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <span class="material-icons text-base">hourglass_bottom</span>
+                            Inject Latency
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Database Pressure Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="px-6 py-4 border-b border-slate-200 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-pink-100 flex items-center justify-center">
+                            <span class="material-icons text-pink-600 text-base">storage</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-900">Database Pressure</h3>
+                            <p class="text-xs text-slate-500">Simulate database failure</p>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 space-y-3">
+                        <div>
+                            <label for="db-pod" class="block text-xs text-slate-600 font-medium mb-1">Database Pod</label>
+                            <input 
+                                type="text" 
+                                id="db-pod"
+                                placeholder="e.g., postgres-xxx"
+                                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
+                            >
+                        </div>
+                        <button 
+                            onclick="applyDatabasePressure(document.getElementById('db-pod').value)"
+                            class="w-full px-4 py-2 rounded-lg bg-pink-600 text-white font-medium hover:bg-pink-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <span class="material-icons text-base">database</span>
+                            Apply DB Pressure
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cluster Inventory & Execution Log -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Cluster Inventory -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200">
+                    <h3 class="font-display font-bold text-slate-900">Cluster Inventory</h3>
+                </div>
+                <div id="clusterInventory" class="px-6 py-4 max-h-96 overflow-y-auto space-y-2">
+                    <div class="animate-pulse space-y-2">
+                        <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+                        <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Execution Log -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200">
+                    <h3 class="font-display font-bold text-slate-900">Execution Log</h3>
+                </div>
+                <div id="executionLog" class="px-6 py-4 max-h-96 overflow-y-auto bg-slate-50 font-mono text-xs text-slate-700 space-y-1">
+                    <p class="text-slate-500">Waiting for actions...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        function log(message) {
+            const logDiv = document.getElementById('executionLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function refreshCluster() {
+            const namespace = document.getElementById('namespace').value;
+            log(`Refreshing cluster inventory for namespace: ${namespace}`);
+            
+            fetch(`${API_BASE}/cluster-inventory?namespace=${namespace}`)
+                .then(r => r.json())
+                .then(data => {
+                    const inv = document.getElementById('clusterInventory');
+                    inv.innerHTML = '';
+                    if (data.deployments && data.deployments.length > 0) {
+                        inv.innerHTML += '<div class="font-semibold text-slate-900 mb-2">Deployments:</div>';
+                        data.deployments.forEach(d => {
+                            const item = document.createElement('div');
+                            item.className = 'text-sm text-slate-700 pl-4';
+                            item.textContent = `• ${d.name} (${d.replicas} replicas)`;
+                            inv.appendChild(item);
+                        });
+                    }
+                    if (data.services && data.services.length > 0) {
+                        inv.innerHTML += '<div class="font-semibold text-slate-900 mt-4 mb-2">Services:</div>';
+                        data.services.forEach(s => {
+                            const item = document.createElement('div');
+                            item.className = 'text-sm text-slate-700 pl-4';
+                            item.textContent = `• ${s.name} (${s.cluster_ip})`;
+                            inv.appendChild(item);
+                        });
+                    }
+                    log('✓ Inventory updated');
+                })
+                .catch(err => log(`✗ Error: ${err.message}`));
+        }
+
+        function crashPod(podName) {
+            if (!podName) { alert('Please enter a pod name'); return; }
+            const namespace = document.getElementById('namespace').value;
+            log(`Crashing pod: ${podName}`);
+            
+            fetch(`${API_BASE}/inject-failure`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'pod-crash', pod_name: podName, namespace })
+            })
+            .then(r => r.json())
+            .then(data => log(`✓ ${data.message || 'Pod crash initiated'}`))
+            .catch(err => log(`✗ Error: ${err.message}`));
+        }
+
+        function applyResourcePressure(podName, type) {
+            if (!podName) { alert('Please enter a pod name'); return; }
+            const namespace = document.getElementById('namespace').value;
+            log(`Applying ${type} pressure to ${podName}`);
+            
+            fetch(`${API_BASE}/inject-failure`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'resource-pressure', pod_name: podName, resource_type: type, namespace })
+            })
+            .then(r => r.json())
+            .then(data => log(`✓ ${data.message || 'Resource pressure applied'}`))
+            .catch(err => log(`✗ Error: ${err.message}`));
+        }
+
+        function injectNetworkPartition(podName) {
+            if (!podName) { alert('Please enter a pod name'); return; }
+            const namespace = document.getElementById('namespace').value;
+            log(`Injecting network partition for ${podName}`);
+            
+            fetch(`${API_BASE}/inject-failure`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'network-partition', pod_name: podName, namespace })
+            })
+            .then(r => r.json())
+            .then(data => log(`✓ ${data.message || 'Network partition injected'}`))
+            .catch(err => log(`✗ Error: ${err.message}`));
+        }
+
+        function injectLatency(podName, latencyMs) {
+            if (!podName) { alert('Please enter a pod name'); return; }
+            const namespace = document.getElementById('namespace').value;
+            log(`Injecting ${latencyMs}ms latency to ${podName}`);
+            
+            fetch(`${API_BASE}/inject-failure`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'latency-injection', pod_name: podName, latency_ms: parseInt(latencyMs), namespace })
+            })
+            .then(r => r.json())
+            .then(data => log(`✓ ${data.message || 'Latency injected'}`))
+            .catch(err => log(`✗ Error: ${err.message}`));
+        }
+
+        function applyDatabasePressure(dbPod) {
+            if (!dbPod) { alert('Please enter a database pod name'); return; }
+            const namespace = document.getElementById('namespace').value;
+            log(`Applying database pressure to ${dbPod}`);
+            
+            fetch(`${API_BASE}/inject-failure`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'database-pressure', pod_name: dbPod, namespace })
+            })
+            .then(r => r.json())
+            .then(data => log(`✓ ${data.message || 'Database pressure applied'}`))
+            .catch(err => log(`✗ Error: ${err.message}`));
+        }
+
+        function healCluster() {
+            const namespace = document.getElementById('namespace').value;
+            log(`Healing all changes in namespace: ${namespace}`);
+            
+            fetch(`${API_BASE}/heal`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ namespace })
+            })
+            .then(r => r.json())
+            .then(data => log(`✓ ${data.message || 'Cluster healed'}`))
+            .catch(err => log(`✗ Error: ${err.message}`));
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', refreshCluster);
+    </script>
+</body>
+</html>

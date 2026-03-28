@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: failure-injector
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: failure-injector-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["get", "list", "watch", "delete", "patch", "update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: failure-injector-binding
+subjects:
+  - kind: ServiceAccount
+    name: failure-injector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: failure-injector-role
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: failure-injector
+  labels:
+    app: failure-injector
+spec:
+  type: ClusterIP
+  selector:
+    app: failure-injector
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: failure-injector
+  labels:
+    app: failure-injector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: failure-injector
+  template:
+    metadata:
+      labels:
+        app: failure-injector
+    spec:
+      serviceAccountName: failure-injector
+      containers:
+        - name: failure-injector
+          image: failureinjector
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PORT
+              value: "8080"
+            - name: LOG_LEVEL
+              value: info
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      volumes:
+        - name: tmp
+          emptyDir: {}

@@ -1,53 +1,106 @@
-<!--
-Copyright 2022 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
--->
-
 <html lang="en">
-  <head>
-{% include 'shared/html_head.html' %}
-  </head>
-  <body>
-{% include 'shared/platform_banner.html' %}
-{% include 'shared/navigation.html' %}
-    <!-- Main Content -->
-    <main class="container">
-      <!-- Sign-in card -->
-      <div class="row mt-5 mb-5">
-        <div class="col-lg-6 offset-lg-3">
-          <div class="card">
-            <div class="card-title header-body">
-              <div class="text-center col-10 offset-1">
-                <p class="text-muted secondary-text">"{{ app_name }}" is requesting access to your account information</p>
-                <h2 class="mb-4 header-title">Do you consent?</h2>
-              </div>
-            </div>
-            <div class="card-body sign-in">
-              <div class="row align-items-center mt-2">
-                <div class="col-10 offset-1 mb-4">
-                  <form id="consent-form" class="needs-validation" novalidate="" method="POST">
-                    <button class="btn btn-sign-in btn-block mb-4" type="submit" formaction="/consent?consent=true&state={{ state }}&redirect_uri={{ redirect_uri }}">Approve</button>
-                    <button class="btn btn-deny btn-block mb-4" type="submit" formaction="/consent?consent=false&state={{ state }}&redirect_uri={{ redirect_uri }}">Deny</button>
-                  </form>
-                </div>
-              </div>
-            </div>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ bank_name }} - Authorize Access</title>
+  <link rel="icon" href="static/img/favicon.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+            display: ["Space Grotesk", "system-ui", "sans-serif"],
+          },
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-slate-50">
+  <div class="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div class="w-full max-w-md">
+      <!-- Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-6">
+
+        <!-- Header -->
+        <div class="text-center space-y-3">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100 mb-4">
+            <span class="material-icons text-blue-600">verified_user</span>
           </div>
+          <h1 class="text-2xl font-display font-bold text-slate-900">Authorize Access</h1>
+          <p class="text-sm text-slate-600">
+            <span class="font-semibold text-slate-900">{{ app_name }}</span> wants to access your account
+          </p>
         </div>
+
+        <!-- Permissions List -->
+        <div class="space-y-3 bg-slate-50 rounded-lg p-4">
+          <p class="text-sm font-medium text-slate-700 mb-3">This application will be able to:</p>
+          <ul class="space-y-2">
+            <li class="flex items-start gap-3">
+              <span class="material-icons text-green-600 flex-shrink-0 mt-0.5 text-base">check</span>
+              <span class="text-sm text-slate-700">View your account information and balance</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="material-icons text-green-600 flex-shrink-0 mt-0.5 text-base">check</span>
+              <span class="text-sm text-slate-700">View your transaction history</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="material-icons text-green-600 flex-shrink-0 mt-0.5 text-base">check</span>
+              <span class="text-sm text-slate-700">Initiate deposits and payments</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Security Info -->
+        <div class="flex gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+          <span class="material-icons text-blue-600 flex-shrink-0 mt-0.5 text-base">info</span>
+          <p class="text-xs text-blue-700">
+            You can revoke this access at any time from your account settings.
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <form method="POST" action="/allow" class="space-y-3">
+          <input type="hidden" name="state" value="{{ state }}">
+          <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+
+          <button type="submit"
+            class="w-full px-4 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
+            Authorize
+          </button>
+        </form>
+
+        <form method="POST" action="/consent" class="space-y-3">
+          <input type="hidden" name="state" value="{{ state }}">
+          <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+
+          <button type="submit"
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium hover:bg-slate-50 active:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-all">
+            Deny
+          </button>
+        </form>
       </div>
-    </main>
-{% include 'shared/footer.html' %}
-{% include 'shared/scripts.html' %}
-  </body>
+
+      <!-- Footer -->
+      <p class="text-center text-xs text-slate-500 mt-6">
+        Your data is protected by industry-standard encryption.
+      </p>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</body>
+
 </html>

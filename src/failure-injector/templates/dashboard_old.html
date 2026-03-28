@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resilience Control Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Sora", "ui-sans-serif", "system-ui", "sans-serif"],
+          },
+          colors: {
+            panel: "#0f172a",
+            panelsoft: "#111b31",
+            edge: "#1e293b",
+            primary: "#22d3ee",
+            danger: "#fb7185",
+          },
+          boxShadow: {
+            glow: "0 0 0 1px rgba(34, 211, 238, 0.2), 0 24px 60px rgba(2, 6, 23, 0.6)",
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+  <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(34,211,238,0.22),transparent_36%),radial-gradient(circle_at_85%_100%,rgba(244,63,94,0.15),transparent_35%)]"></div>
+  <main class="relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <section class="mb-6 rounded-2xl border border-edge bg-panel/80 p-5 shadow-glow backdrop-blur">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="mb-2 inline-flex rounded-full border border-cyan-400/40 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-300">Resilience Studio</p>
+          <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Failure Injection Control Plane</h1>
+          <p class="mt-2 max-w-2xl text-sm text-slate-300">Use this dashboard to inject controlled failures, observe behavior, and recover quickly.</p>
+        </div>
+        <div class="grid w-full gap-2 sm:grid-cols-3 lg:w-auto">
+          <input id="namespace" value="default" placeholder="namespace" class="rounded-xl border border-edge bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:outline-none">
+          <button onclick="refreshInventory()" class="rounded-xl bg-primary/90 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-primary">Refresh</button>
+          <button onclick="healDatabasePressure()" class="rounded-xl bg-danger/90 px-4 py-2 text-sm font-semibold text-white transition hover:bg-danger">Heal Changes</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <article class="rounded-2xl border border-edge bg-panelsoft p-4">
+        <h2 class="text-base font-semibold text-cyan-300">Pod Crash</h2>
+        <p class="mt-1 text-sm text-slate-300">Delete one running pod to force re-scheduling.</p>
+        <input id="crashDeployment" placeholder="deployment e.g. frontend" class="mt-3 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+        <button onclick="podCrash()" class="mt-3 w-full rounded-xl bg-danger/90 px-4 py-2 text-sm font-semibold">Inject</button>
+      </article>
+
+      <article class="rounded-2xl border border-edge bg-panelsoft p-4">
+        <h2 class="text-base font-semibold text-cyan-300">Resource Pressure</h2>
+        <p class="mt-1 text-sm text-slate-300">Scale one workload to increase cluster contention.</p>
+        <input id="resourceDeployment" placeholder="deployment" class="mt-3 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+        <input id="resourceReplicas" type="number" value="3" min="1" class="mt-2 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+        <button onclick="resourcePressure()" class="mt-3 w-full rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950">Apply</button>
+      </article>
+
+      <article class="rounded-2xl border border-edge bg-panelsoft p-4">
+        <h2 class="text-base font-semibold text-cyan-300">Network Partition</h2>
+        <p class="mt-1 text-sm text-slate-300">Pin service traffic to a single revision, then heal.</p>
+        <input id="networkService" placeholder="service" class="mt-3 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+        <input id="networkDeployment" placeholder="deployment" class="mt-2 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+        <select id="networkAction" class="mt-2 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+          <option value="apply">apply</option>
+          <option value="heal">heal</option>
+        </select>
+        <button onclick="networkPartition()" class="mt-3 w-full rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold">Run</button>
+      </article>
+
+      <article class="rounded-2xl border border-edge bg-panelsoft p-4">
+        <h2 class="text-base font-semibold text-cyan-300">Latency Injection</h2>
+        <p class="mt-1 text-sm text-slate-300">Cold-start or reroute traffic to a fresh replica.</p>
+        <input id="latencyDeployment" placeholder="deployment" class="mt-3 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+        <input id="latencyService" placeholder="service (optional for cold-start)" class="mt-2 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+        <select id="latencyMode" class="mt-2 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+          <option value="cold-start">cold-start</option>
+          <option value="reroute-fresh-replica">reroute-fresh-replica</option>
+          <option value="remove">remove</option>
+        </select>
+        <input id="latencyDelay" type="number" value="500" min="0" class="mt-2 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+        <button onclick="latencyInjection()" class="mt-3 w-full rounded-xl bg-fuchsia-500 px-4 py-2 text-sm font-semibold">Apply</button>
+      </article>
+
+      <article class="rounded-2xl border border-edge bg-panelsoft p-4 md:col-span-2 xl:col-span-1">
+        <h2 class="text-base font-semibold text-cyan-300">Database Pressure</h2>
+        <p class="mt-1 text-sm text-slate-300">Throttle services, deprioritize non-critical paths, or increase synthetic load.</p>
+        <select id="dbStrategy" class="mt-3 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+          <option value="limit-services">limit-services</option>
+          <option value="deprioritize-non-critical">deprioritize-non-critical</option>
+          <option value="loadgenerator-pressure">loadgenerator-pressure</option>
+          <option value="redis-cache">redis-cache</option>
+        </select>
+        <input id="dbTargets" value="contacts,userservice" placeholder="targets comma separated" class="mt-2 w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+        <div class="mt-2 grid grid-cols-2 gap-2">
+          <input id="dbReplicas" type="number" value="1" min="0" class="w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+          <input id="dbUsers" type="number" value="100" min="1" class="w-full rounded-xl border border-edge bg-slate-900 px-3 py-2 text-sm">
+        </div>
+        <button onclick="databasePressure()" class="mt-3 w-full rounded-xl bg-rose-500 px-4 py-2 text-sm font-semibold">Apply</button>
+      </article>
+    </section>
+
+    <section class="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <article class="rounded-2xl border border-edge bg-panel/80 p-4">
+        <h2 class="text-base font-semibold">Cluster Inventory</h2>
+        <div id="inventory" class="mt-3 overflow-auto text-sm text-slate-300">No data loaded.</div>
+      </article>
+      <article class="rounded-2xl border border-edge bg-panel/80 p-4">
+        <h2 class="text-base font-semibold">Execution Log</h2>
+        <pre id="out" class="mt-3 max-h-[420px] overflow-auto rounded-xl border border-edge bg-slate-950 p-3 text-xs text-cyan-100">Ready.</pre>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    async function api(path, payload, method = 'POST') {
+      const options = { method, headers: { 'Content-Type': 'application/json' } };
+      if (method !== 'GET') options.body = JSON.stringify(payload || {});
+      const response = await fetch(path, options);
+      const data = await response.json();
+      const out = document.getElementById('out');
+      out.textContent = JSON.stringify(data, null, 2);
+      if (!response.ok) throw new Error(data.error || 'Request failed');
+      await refreshInventory();
+      return data;
+    }
+
+    function ns() {
+      return document.getElementById('namespace').value || 'default';
+    }
+
+    function listFromInput(id) {
+      return document.getElementById(id).value.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    async function podCrash() {
+      await api('/api/faults/pod-crash', {
+        namespace: ns(),
+        deployment: document.getElementById('crashDeployment').value
+      });
+    }
+
+    async function resourcePressure() {
+      await api('/api/faults/resource-pressure', {
+        namespace: ns(),
+        deployment: document.getElementById('resourceDeployment').value,
+        replicas: parseInt(document.getElementById('resourceReplicas').value, 10)
+      });
+    }
+
+    async function networkPartition() {
+      await api('/api/faults/network-partition', {
+        namespace: ns(),
+        service: document.getElementById('networkService').value,
+        deployment: document.getElementById('networkDeployment').value,
+        action: document.getElementById('networkAction').value
+      });
+    }
+
+    async function latencyInjection() {
+      await api('/api/faults/latency', {
+        namespace: ns(),
+        deployment: document.getElementById('latencyDeployment').value,
+        service: document.getElementById('latencyService').value,
+        mode: document.getElementById('latencyMode').value,
+        delayMs: parseInt(document.getElementById('latencyDelay').value, 10)
+      });
+    }
+
+    async function databasePressure() {
+      await api('/api/faults/database-pressure', {
+        namespace: ns(),
+        action: 'apply',
+        strategy: document.getElementById('dbStrategy').value,
+        targetDeployments: listFromInput('dbTargets'),
+        throttleReplicas: parseInt(document.getElementById('dbReplicas').value, 10),
+        loadgeneratorUsers: parseInt(document.getElementById('dbUsers').value, 10)
+      });
+    }
+
+    async function healDatabasePressure() {
+      await api('/api/faults/database-pressure', {
+        namespace: ns(),
+        action: 'heal',
+        strategy: 'limit-services',
+        targetDeployments: []
+      });
+    }
+
+    async function refreshInventory() {
+      const response = await fetch('/api/inventory?namespace=' + encodeURIComponent(ns()));
+      const data = await response.json();
+      const rows = data.deployments
+        .map(d => `<tr class="border-b border-edge"><td class="px-3 py-2">${d.name}</td><td class="px-3 py-2">${d.replicas}</td><td class="px-3 py-2">${d.availableReplicas}</td></tr>`)
+        .join('');
+
+      document.getElementById('inventory').innerHTML = `
+        <table class="w-full overflow-hidden rounded-xl border border-edge bg-slate-900 text-sm">
+          <thead class="bg-slate-800/80 text-slate-200">
+            <tr><th class="px-3 py-2 text-left">Deployment</th><th class="px-3 py-2 text-left">Replicas</th><th class="px-3 py-2 text-left">Available</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    refreshInventory().catch(err => {
+      document.getElementById('out').textContent = err.message;
+    });
+  </script>
+</body>
+</html>

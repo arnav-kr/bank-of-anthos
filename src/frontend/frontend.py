@@ -158,7 +158,7 @@ def create_app():
         return render_template('index.html',
                                account_id=account_id,
                                balance=api_response[BALANCE_NAME],
-                               bank_name=os.getenv('BANK_NAME', 'Bank of Anthos'),
+                               bank_name=os.getenv('BANK_NAME', 'The Bank of Catz'),
                                cluster_name=cluster_name,
                                contacts=api_response[CONTACTS_NAME],
                                cymbal_logo=os.getenv('CYMBAL_LOGO', 'false'),
@@ -414,7 +414,7 @@ def create_app():
 
         return render_template('login.html',
                                app_name=app_name,
-                               bank_name=os.getenv('BANK_NAME', 'Bank of Anthos'),
+                               bank_name=os.getenv('BANK_NAME', 'The Bank of Catz'),
                                cluster_name=cluster_name,
                                cymbal_logo=os.getenv('CYMBAL_LOGO', 'false'),
                                default_password=os.getenv('DEFAULT_PASSWORD', ''),
@@ -496,7 +496,7 @@ def create_app():
 
             return render_template('consent.html',
                                    app_name=app_name,
-                                   bank_name=os.getenv('BANK_NAME', 'Bank of Anthos'),
+                                   bank_name=os.getenv('BANK_NAME', 'The Bank of Catz'),
                                    cluster_name=cluster_name,
                                    cymbal_logo=os.getenv('CYMBAL_LOGO', 'false'),
                                    platform=platform,
@@ -566,7 +566,7 @@ def create_app():
                                     _external=True,
                                     _scheme=app.config['SCHEME']))
         return render_template('signup.html',
-                               bank_name=os.getenv('BANK_NAME', 'Bank of Anthos'),
+                               bank_name=os.getenv('BANK_NAME', 'The Bank of Catz'),
                                cluster_name=cluster_name,
                                cymbal_logo=os.getenv('CYMBAL_LOGO', 'false'),
                                platform=platform,
@@ -747,18 +747,12 @@ def create_app():
             platform = None
         else:
             app.logger.info("Platform is set to '%s'", platform)
-            if platform == 'alibaba':
-                platform_display_name = "Alibaba Cloud"
-            elif platform == 'aws':
-                platform_display_name = "AWS"
-            elif platform == 'azure':
-                platform_display_name = "Azure"
-            elif platform == 'gcp':
-                platform_display_name = "Google Cloud"
+            if platform in ['alibaba', 'aws', 'azure', 'gcp']:
+                platform_display_name = "Cloud"
             elif platform == 'local':
                 platform_display_name = "Local"
             elif platform == 'onprem':
-                platform_display_name = "On-Premises"
+                platform_display_name = "On-Prem"
     else:
         app.logger.info("ENV_PLATFORM environment variable is not set")
 

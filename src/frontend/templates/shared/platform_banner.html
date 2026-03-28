@@ -1,8 +1,9 @@
-    <!-- Platform banner -->
-    {% if platform_name is not none %} 
-    <div class="platform-banner">
-      <span class="platform-flag">
-        {{ platform_display_name }}
-      </span>
-    </div>
-  {% endif %}
+{% if platform_name is not none %}
+<div class="platform-banner">
+  <div class="container py-2 text-center">
+    <span class="platform-flag platform-banner-inner">
+      Environment: {{ platform_display_name }}
+    </span>
+  </div>
+</div>
+{% endif %}

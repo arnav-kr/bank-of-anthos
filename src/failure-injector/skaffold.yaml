@@ -1,0 +1,17 @@
+apiVersion: skaffold/v4beta1
+kind: Config
+metadata:
+  name: failure-injector
+build:
+  artifacts:
+    - image: failureinjector
+      context: .
+  tagPolicy:
+    sha256: {}
+deploy:
+  kubectl: {}
+profiles:
+  - name: development
+    manifests:
+      rawYaml:
+        - ../../kubernetes-manifests/failure-injector.yaml

@@ -1,96 +1,140 @@
-<!--
-Copyright 2020 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
--->
-
 <html lang="en">
-  <head>
-{% include 'shared/html_head.html' %}
-  </head>
-  <body>
-{% include 'shared/platform_banner.html' %}
-{% include 'shared/navigation.html' %}
-    <!-- Main Content -->
-    <main class="container">
-      <!-- Sign-in card -->
-      <div class="row mt-5 mb-5">
-        <!-- Alert on load -->
-        {% if message != None and message != 'Login Failed' %}
-        <div class="col-md-8 offset-md-2">
-          <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <span class="error-icon mr-2 material-icons">error</span>{{ message }}
-            <button type="button" class="close btn-primary" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">×</span>
-            </button>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ bank_name }}</title>
+  <link rel="icon" href="static/img/favicon.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+            display: ["Space Grotesk", "system-ui", "sans-serif"],
+          },
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-slate-50">
+  <div class="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div class="w-full max-w-md">
+      <!-- Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-6">
+
+        <!-- Header -->
+        <div class="text-center space-y-2">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100 mb-4">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3m0-5C6.477 1 2 5.477 2 12s4.477 11 10 11 10-4.477 10-10S17.523 1 12 1m0 20c-4.97 0-9-4.03-9-9s4.03-9 9-9 9 4.03 9 9-4.03 9-9 9" />
+            </svg>
           </div>
+          <h1 class="text-2xl font-display font-bold text-slate-900">{{ bank_name }}</h1>
+          <p class="text-sm text-slate-500">Sign in to your account</p>
+        </div>
+
+        <!-- Alert (if message) -->
+        {% if message != None and message != 'Login Failed' %}
+        <div class="p-3 rounded-lg bg-blue-50 border border-blue-200">
+          <p class="text-sm text-blue-700">{{ message }}</p>
         </div>
         {% endif %}
-        <div class="col-lg-6 offset-lg-3">
-          <div class="card">
-            <div class="card-title header-body">
-              <div class="text-center col-10 offset-1">
-                <p class="text-uppercase text-muted secondary-text">Welcome</p>
-                <h2 class="mb-4 header-title">SIGN IN</h2>
-              </div>
+
+        <!-- Login Form -->
+        {% if response_type == "code" %}
+        <form id="login-form" method="POST"
+          action="/login?response_type={{ response_type }}&state={{ state }}&redirect_uri={{ redirect_uri }}&app_name={{ app_name }}"
+          class="space-y-4">
+          {% else %}
+          <form id="login-form" method="POST" action="/login" class="space-y-4">
+            {% endif %}
+
+            <!-- Username Field -->
+            <div>
+              <label for="username" class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+              <input type="text" id="login-username" name="username" value="{{ default_user }}" autocomplete="username"
+                pattern="([a-zA-Z0-9_]){2,15}" required
+                class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+                placeholder="Enter your username">
+              <div class="invalid-feedback text-xs text-red-600 mt-1 hidden">Please enter a valid username</div>
             </div>
-            <div class="card-body sign-in">
-              <div class="row align-items-center mt-2">
-                <div class="col-10 offset-1 mb-4">
-                  <div id="alertBanner" class="alert alert-danger mb-4 hidden" role="alert">
-                    <span class="error-icon mr-2 material-icons">error</span>Login failed.
-                  </div>
-                  {% if response_type == "code" %}
-                  <form id="login-form" class="needs-validation" novalidate="" method="POST" action="/login?response_type={{ response_type }}&state={{ state }}&redirect_uri={{ redirect_uri }}&app_name={{ app_name }}">
-                  {% else %}
-                  <form id="login-form" class="needs-validation" novalidate="" method="POST" action="/login">
-                  {% endif %}
-                    <label class="text-uppercase text-muted secondary-text" for="username">Username</label>
-                    <div class="input-group mt-2d mb-5">
-                      <div class="input-group-prepend mr-2">
-                        <span class="input-group-text"><span class="material-icons">account_circle</span></span>
-                      </div>
-                      <input class="form-control" type="text" id="login-username" name="username" autocomplete="off" pattern="([a-zA-Z0-9_]){2,15}" value="{{ default_user }}" required>
-                      <div class="invalid-feedback">
-                        Please enter your username.
-                      </div>
-                    </div>
-                    <label class="text-uppercase text-muted secondary-text" for="password">Password</label>
-                    <div class="input-group mt-2 mb-5">
-                      <div class="input-group-prepend mr-2">
-                        <span class="input-group-text"><span class="material-icons">lock</span></span>
-                      </div>
-                      <input class="form-control" type="password" id="login-password" name="password" value="{{ default_password }}" required>
-                      <div class="invalid-feedback">
-                        Please enter your password.
-                      </div>
-                    </div>
-                    <button class="btn btn-sign-in btn-block mb-4" type="submit">Sign in</button>
-                    <small class="text-uppercase secondary-text text-muted">
-                      Not registered?
-                    </small>
-                    <a href="/signup" class="btn btn-secondary btn-block mt-2 mb-4" id="create-account-btn" type="button">Create an Account</a>
-                  </form>
-                </div>
-              </div>
+
+            <!-- Password Field -->
+            <div>
+              <label for="password" class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+              <input type="password" id="login-password" name="password" value="{{ default_password }}"
+                autocomplete="current-password" required
+                class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+                placeholder="Enter your password">
+              <div class="invalid-feedback text-xs text-red-600 mt-1 hidden">Please enter your password</div>
+            </div>
+
+            <!-- Error Alert -->
+            <div id="alertBanner" class="p-3 rounded-lg bg-red-50 border border-red-200 hidden">
+              <p class="text-sm text-red-700 font-medium">Login failed. Please check your credentials.</p>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+              class="w-full px-4 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
+              Sign in
+            </button>
+          </form>
+
+          <!-- Divider -->
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-slate-200"></div>
+            </div>
+            <div class="relative flex justify-center text-xs">
+              <span class="px-3 bg-white text-slate-500">Don't have an account?</span>
             </div>
           </div>
-        </div>
+
+          <!-- Sign Up Link -->
+          <a href="/signup"
+            class="w-full block text-center px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 font-medium hover:bg-slate-50 active:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
+            Create an account
+          </a>
       </div>
-    </main>
-{% include 'shared/footer.html' %}
-{% include 'shared/scripts.html' %}
-    <!-- Page specific-->
-    <script src="static/scripts/login.js"></script>
-  </body>
+
+      <!-- Footer -->
+      <p class="text-center text-xs text-slate-500 mt-6">
+        This is a demo banking application for testing purposes only.
+      </p>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', function (e) {
+      const form = this;
+      const isValid = form.checkValidity() === false;
+
+      if (isValid) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      form.classList.add('was-validated');
+    });
+
+    // Show error if login failed (you can set this from backend)
+    if (document.querySelector('[class*="invalid-feedback"]')?.innerHTML) {
+      document.getElementById('alertBanner').classList.remove('hidden');
+    }
+  </script>
+</body>
+
 </html>

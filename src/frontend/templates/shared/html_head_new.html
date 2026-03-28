@@ -1,0 +1,66 @@
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ bank_name }}</title>
+<link rel="icon" href="static/img/favicon.png" />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+  rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ["Inter", "system-ui", "sans-serif"],
+          display: ["Space Grotesk", "system-ui", "sans-serif"],
+        },
+        colors: {
+          brand: "#0066cc",
+        },
+        keyframes: {
+          fadeIn: {
+            "0%": { opacity: "0", transform: "translateY(10px)" },
+            "100%": { opacity: "1", transform: "translateY(0)" },
+          },
+        },
+        animation: {
+          fadeIn: "fadeIn 0.3s ease-out",
+        },
+      }
+    }
+  }
+</script>
+<style>
+  * {
+    @apply transition-colors;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-white text-slate-900 font-sans;
+  }
+
+  /* Shimmer loading */
+  .shimmer {
+    @apply bg-gradient-to-r from-slate-100 via-white to-slate-100;
+    background-size: 1000% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 1000% 0;
+    }
+
+    100% {
+      background-position: -1000% 0;
+    }
+  }
+</style>

@@ -34,5 +34,8 @@ requires:
 - configs:
   - ledger-db
   path: src/ledger/ledger-db/skaffold.yaml
+- configs:
+  - failure-injector
+  path: src/failure-injector/skaffold.yaml
 deploy:
   tolerateFailuresUntilDeadline: true

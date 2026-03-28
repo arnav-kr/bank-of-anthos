@@ -1,0 +1,305 @@
+<html lang="en">
+  <head>
+{% include 'shared/html_head.html' %}
+  </head>
+  <body>
+{% include 'shared/platform_banner.html' %}
+{% include 'shared/navigation.html' %}
+    <!-- Main Content -->
+    <main class="container">
+      <!-- Alert on load -->
+    {% if message != None %}
+      <div id="alert-message-div" style="margin-bottom: var(--boa-spacing-lg);">
+        <div class="card snackbar-card">
+          <div class="card-body snackbar-body">
+            <div class="alert-message-container">
+              <span class="material-icons" style="font-size: 1.5rem;">check_circle</span>
+              {{ message }}
+            </div>
+            <span class="snackbar-close material-icons" onclick="$('#alert-message-div').remove();">close</span>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+      <!-- Top row - overview, account # -->
+      <div class="row col-lg-12 align-items-end top-row mb-lg">
+        <div class="col-md-8">
+          <p class="caption mb-sm">Overview</p>
+          <h2 class="header-title">Checking Account</h2>
+        </div>
+
+        <div class="col-md-4 text-right">
+          <small style="color: var(--boa-text-muted);">
+            <span class="material-icons" style="font-size: 0.9rem; vertical-align: text-bottom;">account_balance</span>
+            Account #<br>
+            <code style="font-weight: 600; color: var(--boa-text);">{{ account_id }}</code>
+          </small>
+        </div>
+      </div>
+
+      <!-- Balance / Deposit / Send Payment row -->
+      <div class="row col-lg-12 align-items-stretch gap-md" style="display: flex; gap: var(--boa-spacing-md); margin-bottom: var(--boa-spacing-lg);">
+        <!-- Balance Card -->
+        <div class="col-lg-4" style="display: flex;">
+          <div class="card balance-card w-100">
+            <div class="card-body">
+              <p class="current-balance">Current Balance</p>
+              <span id="current-balance">{{ format_currency(balance) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deposit Button -->
+        <div class="col-lg-4" style="display: flex;">
+          <div class="card deposit-send-button w-100" data-toggle="modal" data-target="#depositFunds" data-keyboard="false" data-backdrop="static">
+            <div class="card-body">
+              <span class="material-icons" style="font-size: 2rem; margin-bottom: 0.5rem;">download</span>
+              <div class="h5" id="depositSpan" style="margin: 0; font-weight: 600; font-size: 1rem;">Deposit Funds</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Send Payment Button -->
+        <div class="col-lg-4" style="display: flex;">
+          <div class="card deposit-send-button w-100" data-toggle="modal" data-target="#sendPayment" data-keyboard="false" data-backdrop="static">
+            <div class="card-body">
+              <span class="material-icons" style="font-size: 2rem; margin-bottom: 0.5rem;">send</span>
+              <div class="h5" id="paymentSpan" style="margin: 0; font-weight: 600; font-size: 1rem;">Send Payment</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction History Card -->
+      <div class="row col-lg-12 mb-lg">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-body">
+              <h3 class="header-title mb-lg">Transaction History</h3>
+
+              <div id="transaction-table">
+                {% if history is none %}
+                <p style="color: var(--boa-text-muted);">Error: Could Not Load Transactions</p>
+                {% elif history|length == 0 %}
+                <p style="color: var(--boa-text-muted);">No transactions found.</p>
+                {% else %}
+                <div style="display: flex; flex-direction: column; gap: 0.5px;">
+                  <!-- Transaction list -->
+                  {% for t in history %}
+                  <div class="transaction-row" style="display: flex; align-items: center; padding: var(--boa-spacing-md); border-bottom: 1px solid var(--boa-border); gap: var(--boa-spacing-md);">
+                    <!-- Transaction icon -->
+                    <div class="transaction-icon {% if t.toAccountNum == account_id %}credit{% else %}debit{% endif %}">
+                      {% if t.toAccountNum == account_id %}
+                      <span class="material-icons" style="font-size: 1.2rem;">arrow_downward</span>
+                      {% else %}
+                      <span class="material-icons" style="font-size: 1.2rem;">arrow_upward</span>
+                      {% endif %}
+                    </div>
+
+                    <!-- Transaction details -->
+                    <div style="flex: 1;">
+                      {% if t.toAccountNum == account_id %}
+                        <div class="transaction-type">Credit from {{ t.fromAccountNum }}</div>
+                      {% else %}
+                        <div class="transaction-type">Debit to {{ t.toAccountNum }}</div>
+                      {% endif %}
+                      
+                      <div class="transaction-date">
+                        {{ format_timestamp_month(t.timestamp) }} {{ format_timestamp_day(t.timestamp) }}
+                        {% if t.accountLabel %}
+                        • {{ t.accountLabel }}
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <!-- Amount -->
+                    {% if t.toAccountNum == account_id %}
+                      <div class="transaction-amount-credit">+{{ format_currency(t.amount) }}</div>
+                    {% else %}
+                      <div class="transaction-amount-debit">−{{ format_currency(t.amount) }}</div>
+                    {% endif %}
+                  </div>
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deposit Modal -->
+      <div class="modal fade" id="depositFunds" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <form id="deposit-form" class="needs-validation" novalidate="" method="POST" action="/deposit">
+              <div class="modal-header">
+                <div>
+                  <p class="caption mb-xs">Transfer</p>
+                  <h2 class="modal-title header-title" style="font-size: 1.5rem; margin-bottom: 0;">Deposit Funds</h2>
+                </div>
+                <button type="button" class="close deposit-cancel" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+
+              <!-- Modal form body -->
+              <div class="modal-body">
+                <div class="form-group">
+                  <label for="accounts">External Account</label>
+                  <select class="custom-select w-100" id="accounts" name="account">
+                    {% for account in contacts %}
+                      {% if account.is_external %}
+                        <option value='{"account_num": "{{ account.account_num }}", "routing_num": "{{ account.routing_num }}" }'>
+                          {{ account.label }} - {{ account.account_num }} - {{ account.routing_num }}
+                        </option>
+                      {% endif %}
+                    {% endfor %}
+                    <option disabled>──────────</option>
+                    <option value="add">New External Account</option>
+                  </select>
+                </div>
+
+                <!-- New account fields (hidden by default) -->
+                <div id="otherDepositInputs" class="hidden">
+                  <div class="alert alert-danger">
+                    <span class="material-icons">error</span>
+                    <strong>Warning</strong>: This website is a simulation. Please don't include real personal information.
+                  </div>
+
+                  <div class="form-group">
+                    <label for="external_account_num">Account Number</label>
+                    <div class="input-group">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">#</span>
+                      </div>
+                      <input class="form-control" type="number" step='1' id="external_account_num" name="external_account_num" min=1000000000 max=9999999999 placeholder="Account Number"/>
+                      <div class="invalid-feedback">Please enter a valid 10 digit account number.</div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="external_routing_num">Routing Number</label>
+                    <div class="input-group">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text"><span class="material-icons">account_balance</span></span>
+                      </div>
+                      <input class="form-control" type="number" step='1' id="external_routing_num" name="external_routing_num" min=100000000 max=999999999 placeholder="Routing Number"/>
+                      <div class="invalid-feedback">Please enter a valid 9 digit routing number.</div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="external_label">Account Label (Optional)</label>
+                    <input class="form-control" type="text" id="external_label" maxLength="30" pattern="^[0-9a-zA-Z][0-9a-zA-Z ]{0,29}$" name="external_label" placeholder="Account Label"/>
+                    <div class="invalid-feedback">Invalid label.</div>
+                  </div>
+                </div>
+
+                <!-- Amount field -->
+                <div class="form-group mb-0">
+                  <label for="deposit-amount">Deposit Amount</label>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><span class="material-icons">attach_money</span></span>
+                    </div>
+                    <input class="form-control" type="number" autocomplete="off" step="0.01" id="deposit-amount" name="amount" placeholder="0.00" min="0.01" max="500000.00" required/>
+                    <div class="invalid-feedback">Please enter a valid amount.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal buttons footer -->
+              <div class="modal-body">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Deposit</button>
+              </div>
+
+              <input type="hidden" id="deposit-uuid" name="uuid">
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Send Modal -->
+      <div class="modal fade" id="sendPayment" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <form id="payment-form" class="needs-validation" novalidate="" method="POST" action="/payment">
+              <div class="modal-header">
+                <div>
+                  <p class="caption mb-xs">Payment</p>
+                  <h2 class="modal-title header-title" style="font-size: 1.5rem; margin-bottom: 0;">Send Payment</h2>
+                </div>
+                <button type="button" class="close payment-cancel" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+
+              <!-- Modal form body -->
+              <div class="modal-body">
+                <div class="form-group">
+                  <label for="payment-accounts">Recipient</label>
+                  <select class="custom-select w-100" id="payment-accounts" name="account_num">
+                    {% for account in contacts %}
+                      {% if not account.is_external %}
+                        <option value="{{ account.account_num }}">{{ account.label }} - {{ account.account_num }}</option>
+                      {% endif %}
+                    {% endfor %}
+                    <option disabled>──────────</option>
+                    <option value="add">New Recipient</option>
+                  </select>
+                </div>
+
+                <!-- New recipient fields (hidden by default) -->
+                <div id="otherAccountInputs" class="hidden">
+                  <div class="form-group">
+                    <label for="contact_account_num">Account Number</label>
+                    <div class="input-group">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">#</span>
+                      </div>
+                      <input class="form-control" type="number" step='1' id="contact_account_num" name="contact_account_num" min=1000000000 max=9999999999 placeholder="Account Number"/>
+                      <div class="invalid-feedback">Please enter a valid 10 digit account number.</div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="contact_label">Contact Label (Optional)</label>
+                    <input class="form-control" type="text" id="contact_label" name="contact_label" maxLength="30" pattern="^[0-9a-zA-Z][0-9a-zA-Z ]{0,29}$" placeholder="Contact Label"/>
+                    <div class="invalid-feedback">Invalid label.</div>
+                  </div>
+                </div>
+
+                <!-- Amount field -->
+                <div class="form-group mb-0">
+                  <label for="payment-amount">Transaction Amount</label>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text"><span class="material-icons">attach_money</span></span>
+                    </div>
+                    <input class="form-control" type="number" autocomplete="off" step="0.01" id="payment-amount" name="amount" placeholder="0.00" min="0.01" max="{{ balance / 100 if balance is not none }}" required/>
+                    <div class="invalid-feedback">Please enter a valid amount.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal buttons footer -->
+              <div class="modal-body">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Send</button>
+              </div>
+
+              <input type="hidden" id="payment-uuid" name="uuid">
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+{% include 'shared/footer.html' %}
+{% include 'shared/scripts.html' %}
+    <!-- Page specific-->
+    <script src="static/scripts/index.js"></script>
+  </body>
+</html>
